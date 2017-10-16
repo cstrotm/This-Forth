@@ -1,0 +1,61 @@
+( The International Standard 32-bit CRC, also used by ZMODEM and PKZIP.	)
+
+| create crcTable	  ( 256	cells allot )
+
+MARKER INITIALIZE-CRC-TABLE
+
+( Define crcPolynomial from its	coefficient terms. )
+
+	32 26 23 22 16 12 11 10	8 7 5 4	2 1 0	( ...)
+
+	0 begin					( ... poly)
+		over 32	= not
+	while
+		1  ROT	31 swap	-  LSHIFT  OR
+	repeat	nip				( poly)
+	CONSTANT
+		crcPolynomial			( )
+
+: AccumulateCRC				( crc byte -- crc byte )
+	>R					( crc)
+		dup  1 AND  if
+			1 RSHIFT  crcPolynomial	XOR
+		else
+			1 RSHIFT
+		then
+		R@  1 AND  if
+			crcPolynomial XOR
+		then
+	R>					( crc byte)
+;
+
+: UpdateCRC				( oldcrc byte -- newcrc	)
+	8 0 DO
+		AccumulateCRC
+		1 RSHIFT
+	LOOP	drop				( crc)
+;
+
+( Build	crcTable for every possible byte. )
+
+	256 0 DO    0 i	UpdateCRC ,    LOOP
+
+INITIALIZE-CRC-TABLE
+
+( Display crcTable to see whether it looks OK. )
+
+	256 0 DO
+		i th crcTable @	 10 0x u.r
+	LOOP
+
+( Define UpdateCRC as an inline	macro. )
+
+: UpdateCRC				( oldcrc byte -- newcrc	)
+	over xor   255 and   th	crcTable @   swap   8 rshift   xor
+; inline
+
+|| ( Disown local definitions. )
+
+( Define CRC filter. )
+
+: CRC	TRUE SWAP filter  GET-CHAR UpdateCRC  unfilter ;

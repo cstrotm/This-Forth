@@ -1,0 +1,72 @@
+( The Double Number Word Set )
+
+: DNEGATE       0. 2SWAP D- ;
+
+: DABS    DUP 0< ?? DNEGATE ;
+
+: DU<                                             ( u . u . -- flag )
+          ROT 2DUP = IF
+                    2DROP U<
+          ELSE
+                    U> NIP NIP
+          THEN
+;
+
+: D2*     2DUP D+ ;
+
+: D>S     DROP ; inline
+
+: D<
+          ROT 2DUP = IF
+                    2DROP U<
+          ELSE
+                    > NIP NIP
+          THEN
+;
+
+: D2/
+          >R
+                    1 RSHIFT
+                    R@ 1 AND IF
+                              TRUE 1 RSHIFT INVERT OR
+                    THEN
+          R> 2/
+;
+
+: D0= ( n . -- flag) OR 0 = ;
+
+: D0<     NIP 0< ;
+
+: D= ( a . b . -- flag ) D- OR 0 = ;
+
+: DMAX    2OVER 2OVER D< IF   2SWAP   THEN 2DROP ;
+
+: DMIN    2OVER 2OVER D< not IF  2SWAP THEN  2DROP ;
+
+: M+      S>D D+ ; inline
+
+: D.      DUP >R DABS <# [CHAR] . HOLD #S R> SIGN #> TYPE SPACE ;
+
+: D.R     >R DUP >R DABS <# [CHAR] . HOLD #S R> SIGN #> R> OVER - SPACES TYPE ;
+
+: du.     <# [CHAR] . HOLD #S #> TYPE SPACE ;
+
+: 2VARIABLE CREATE 0 , 0 , ;
+
+: 2CONSTANT get-word will please
+          ": ~ [ outside 1 + PICK ] LITERAL [ outside PICK ] LITERAL ;
+          inline " expound 2DROP
+;
+
+TRUE TRUE 1 RSHIFT 2CONSTANT MAX-D
+
+-1. 2CONSTANT MAX-UD
+
+: t* ( u . u -- u . . ) TUCK UM* 2SWAP UM* SWAP >R 0 D+ R> ROT ROT ;
+
+: t/ ( u . . u -- u . ) DUP >R UM/MOD ROT ROT R> UM/MOD NIP SWAP ;
+
+: M*/ ( u . u u -- u . ) >R t*  R> t/ ;
+
+: 2LITERAL  please "[ SWAP ] LITERAL LITERAL " ; IMMEDIATE
+

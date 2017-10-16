@@ -1,0 +1,46 @@
+( Replace leading spaces and tabs by tabs. )
+
+have TAB 0= if   --> tab   then
+
+| variable SPACING
+
+| : HOWMANY ( n d -- x ) dup 1- under+ / ;
+
+| : HOWMUCH ( n d -- x ) tuck mod - ;
+
+| : FILLING
+	spacing @ 0= ?? exit
+	col @ 0= if
+		spacing @ tabsize HOWMANY 0 ?do tabchar emit loop
+	else
+		spacing @ spaces
+	then
+	spacing @ col +!
+	0 spacing !
+;
+
+: ENTAB						( fileid -- )
+	0 col !   0 spacing !
+	filter
+		get-char				( char)
+		case
+			BL
+		of
+			1 spacing +!
+		else
+			EOL
+		of
+			cr
+			0 col !
+			0 spacing !
+		else
+			TABCHAR
+		of
+			col @ spacing @ + tabsize HOWMUCH spacing +!
+		else
+			filling
+			1 col +!
+			emit
+		0 endcase					( )
+	unfilter
+;

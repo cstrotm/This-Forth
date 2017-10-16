@@ -1,0 +1,202 @@
+( fo rth -- This Forth High Level Kernel  94-02-25 )
+GET-CHAR   CONSTANT     BL     ( By convention BL must be first. )
+GET-CHAR
+CONSTANT EOL
+0           CONSTANT FALSE
+1 begin dup 2 * 1 or swap over = until CONSTANT TRUE
+-1          CONSTANT EOF ( From Carnal Knowledge )
+
+: 0=        please "0 = " ; immediate
+: 0<        please "0 < " ; immediate
+: 0>        please "0 > " ; immediate
+: 1+        please "1 + " ; immediate
+: 1-        please "1 - " ; immediate
+: 2*        please "2 * " ; immediate
+
+: CELL+     PLEASE "1 cells + " ; IMMEDIATE
+: CHAR+     PLEASE "1 chars + " ; IMMEDIATE
+: CHARS     PLEASE "" ; IMMEDIATE
+: INVERT    PLEASE "true xor " ; IMMEDIATE
+: NOT       please "false = " ; immediate
+: TUCK      PLEASE "swap over " ; IMMEDIATE
+
+: PARSE-WORD  BL WORD COUNT ;
+: ~PLEASE   please "parse-word please " ; immediate
+: CHAR      parse-word DROP C@ ;
+: WILL      please " [exit] " ;
+: EVALUATE  WILL PLEASE "~" EXPOUND ;
+: S"        [CHAR] " PARSE PLEASE 'c" ~" count ' ; IMMEDIATE 
+: ."        [CHAR] " PARSE PLEASE 'c" ~" count type ' ; IMMEDIATE 
+: ABORT"    [CHAR] " PARSE PLEASE 'if ." ~" abort then ' ; IMMEDIATE
+: '         BL WORD FIND 0= ABORT" Can't find " ;
+: [']       state @ if ~please "[ ' ~ ] LITERAL " else ' then ; IMMEDIATE
+: POSTPONE  ~PLEASE "['] ~ EXECUTE " ; IMMEDIATE
+                    ( Control Structures. )
+: OF        PLEASE "over = if drop " ; IMMEDIATE
+: ENDOF     PLEASE "ELSE " ; IMMEDIATE
+: ESAC      PLEASE "0 endcase " ; IMMEDIATE
+: AGAIN     PLEASE "false until " ; IMMEDIATE
+: ANDIF     please "dup if drop " ; immediate
+: ORIF      please "?dup 0 = if " ; immediate
+: ??        ~please "if ~ then " ; immediate
+                    ( Nothing special. )
+: ABS       DUP 0< ?? NEGATE ;
+: C+!       dup C@ under+ C! ;
+: DECIMAL   10 BASE ! ;
+: HEX       16 BASE ! ;
+: MAX       2DUP < ?? SWAP DROP ;
+: MIN       2DUP > ?? SWAP DROP ;
+: SPACE     BL EMIT ;       
+: */        */MOD NIP ;
+                    ( Formatted output.  Nothing special. )
+: >char     dup 10 < not if 10 - [char] A + [char] 0 - then [char] 0 + ;
+: <#        0 BASE 1 CHARS - C! ;
+: HOLD      1 BASE 1 CHARS - C+! BASE 1 CHARS - DUP C@ CHARS  - C! ;
+: SIGN      0< IF [CHAR] - HOLD THEN ;
+: #         0 BASE @ UM/MOD >R BASE @ UM/MOD SWAP >char HOLD R> ;
+: #S        BEGIN   #   2DUP OR 0 = UNTIL ;
+: #>        2DROP BASE 1 CHARS - DUP C@ DUP CHARS NEGATE UNDER+ ;
+: (.)       dup >r  abs  0 <# #s r> sign #> ;
+: .         (.) TYPE   SPACE ;
+: .R        >R (.) R> OVER - SPACES TYPE ;
+: U.        0 <# #S #> TYPE   SPACE ;
+: U.R       >R 0 <# #S #> R> OVER - SPACES  TYPE ;
+: ?         @ . ;
+                    ( Dataspace. )
+: ALIGN     HERE ALIGNED HERE - ALLOT ;
+: ,         ALIGN    HERE !  1 CELLS ALLOT ;
+: C,        HERE C!  1 CHARS ALLOT ;
+: CREATE    ALIGN    HERE CONSTANT ;
+: VARIABLE  CREATE   0 , ;
+: [HERE]    please "[ align here ] literal " ; immediate
+: VALUE     CREATE , IMMEDIATE DOES> (.) please "~ @ " ;
+: TO        ~PLEASE "['] ~ >BODY ! " ; IMMEDIATE
+                     ( Cell pairs and stack handling. )
+: 2!        SWAP OVER ! CELL+ ! ;
+: 2@        DUP CELL+ @ SWAP @ ;
+: 2>R       SWAP >R >R ; inline
+: 2R>       R> R> SWAP ; inline
+: 2R@       R> R@ SWAP DUP >R ; inline
+: 2rot      5 roll 5 roll ;
+: S>D       DUP 0< ;  ( Canonical true is all-bits-on. )
+                    ( Simple extensions. )
+: X.        base @ 10 = if    . else    u. then ;
+: .S        DEPTH  BEGIN  ?DUP WHILE  DUP PICK X.  1-  REPEAT ;
+: ..        .S    begin depth while drop repeat ;
+: S,        dup c, 0 ?do count c, loop drop ;
+: S=        please "compare 0= " ; immediate
+: TH        ~please "cells ~ + " ; immediate
+: 0x        ~please "hex ~ decimal " ; immediate
+: [0x]      ~please "[ hex ] ~ [ decimal ] " ; immediate
+                    ( File handling. )
+: OPENED    FOPEN dup 0 = abort" Can't open " ;
+: INPUT     s" r" OPENED ;
+: OUTPUT    s" w" OPENED ;
+: CLOSED    ?dup if FCLOSE abort" Can't close. " then ;
+: REWIND    0 0 FSEEK drop   error? drop ;
+: TOLD      FTELL dup 0 < abort" Can't tell. " ;
+: SOUGHT    FSEEK abort" Can't seek. " ;
+: FLUSHED   FFLUSH abort" Can't flush. " ;
+: GET-LINE  eol parse ;
+: PARSE-LINE    get-line  eol stack-char ;
+: REFILL    get-line 2DROP   next-char 0< not ;
+: GET-WORD  begin parse-word dup ?? exit refill while 2drop repeat ;
+: FILTER    please "stream begin next-char 0< not while " ; immediate
+: UNWIND    source-id unstream rewind ;
+: UNFILTER  please "repeat unwind " ; immediate
+                    ( Not so simple extensions. )
+: [exit]    r> drop ; immediate ( Implementation factor of `WILL'. )
+: $         parse-line system abort" Failed. " ;
+: TR        get-word get-word 2swap please "~ ~ " ; immediate
+: -->       ~please 's" elective ~ input stream " evaluate ' ; immediate
+: INCLUDED  S" input stream" EVALUATE ;
+( : S+        will please '~" ' please 'S" ~' expound ; )
+: S+        will please 'S" ~~"' expound ;
+: HAVE      bl word find nip ;
+: EMPTY     C" ------" find if execute else drop then
+            s" MARKER ------" evaluate ;
+                    ( Common implementation factors. )
+: 3drop     2drop drop ; inline
+: 3dup      2 pick 2 pick 2 pick ;
+: 4drop     2drop 2drop ; inline
+: 4dup      2over 2over ; inline
+: /STRING   DUP  NEGATE UNDER+  CHARS UNDER+ ;
+: >UPPER    dup  [char] a -  26 U< if   [char] a - [char] A +   then ;
+: BOUNDS    over + swap ;
+: checked   abort" (I/O Error)" ;
+: COPY      filter get-char emit unfilter ;
+: [CTRL]    get-char  >upper  64 -  127 and  postpone literal ; immediate
+: .0r       >r (.) r> over - 0 max 0 ?do ." 0" loop type ;
+: GRAPH?    BL 1 + -  94 u< ;  ( Is a visible character? )
+: K         please "[ 5 5 + ] literal lshift " ; immediate
+: PLACE     2dup >R >R  char+  swap chars MOVE  R> R> C! ;
+: PRINT?    BL - 95 u< ;  ( Is a printable character? )
+: -TRAILING BEGIN DUP 0= ?? EXIT 1- 2DUP CHARS + C@ graph? UNTIL 1+ ;
+: R!        r> drop >r ; inline
+: R+!       r> + >r ; inline
+
+( Standard Forth KEY and ACCEPT cannot be defined portably. )
+: KEY           0 stream GET-CHAR unstream ;
+( In This Forth KEY just gets a character from standard input. )
+
+( ACCEPT always reads to EOL. )
+: ACCEPT                              	( buf . -- k )
+	0 stream
+		GET-LINE                        ( buf . input k)
+	unstream
+	rot min                                 ( buf input k)
+	>R                                      ( buf input)
+		swap R@ chars MOVE              ( )
+	R>                                      ( k)
+;
+
+(  From the Standard: "c-addr is the address of, and u is the number of
+characters in, the input buffer." )
+: SOURCE ( -- c-addr u ) 1 has count ;
+
+( Core Extension )
+
+: .(        [CHAR] ) PARSE TYPE ; IMMEDIATE
+: <>        PLEASE "= 0= " ; IMMEDIATE
+: 0<>       please "0 <> " ; IMMEDIATE
+: ERASE     ( 1 chars / ) 0 FILL ;
+: WITHIN    OVER - >R - R> U< ;
+CREATE PAD  84 CHARS ALLOT
+: RESTORE-INPUT drop source-id swap 0 fseek ;
+: SAVE-INPUT source-id told 1 ;
+: \         parse-line 2DROP ; IMMEDIATE
+: COMPILE,  1 + 0 has dup 1  + 0 patch patch ;
+: [COMPILE] bl word find ?dup 0= abort" Can't find "
+	0< if compile, else postpone literal postpone execute then
+; immediate
+
+( Conditional Compilation )
+
+: [ELSE]                                ( -- )
+        1 BEGIN                                 ( level)
+                get-word                        ( level word .)
+                ?DUP 0= IF    2DROP EXIT    THEN
+                CASE	2DUP S" [IF]" s=
+                        orif 2DUP S" [if]" s= then
+                IF	2DROP 1+
+                ELSE	2DUP S" [ELSE]" s=
+                        orif 2DUP S" [else]" s= then
+                IF	2DROP 1- DUP ?? 1+
+                ELSE	2DUP S" [THEN]" s=
+                        orif 2DUP S" [then]" s= then
+                IF	2DROP 1-
+                ELSE	2DROP
+                0 ENDCASE                       ( level)
+                ?DUP 0=
+        UNTIL                                   ( )
+; IMMEDIATE
+
+: [IF] ( flag -- ) 0= IF POSTPONE [ELSE] THEN ; IMMEDIATE
+
+: [THEN] ( -- ) ; IMMEDIATE
+
+have F* [IF]    S" floating.fo" INCLUDED    [THEN]
+
+: \S    source-id unstream closed ; immediate
+
+MARKER ------------------------------------------------------------------

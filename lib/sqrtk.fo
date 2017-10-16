@@ -1,0 +1,62 @@
+( SQRTK -- Nearest integer to 1024 times the square root )
+( After D. E. Knuth, _The Stanford GraphBase_, int_sqrt )
+( Standard Forth CORE EXT words with NOT )
+
+| : SQRTK-STEP                  ( x q y m -- x q y m)
+        >R                              ( x q y)
+                2*
+                2 pick R@ and if 1+ then
+                R> 1 rshift >R
+                2*    over -
+                2 pick R@ and if 1+ then
+                >R 2* R>
+                2dup < IF
+                        over -
+                        >R 2 + R>
+                ELSE
+                dup 0> not if
+                        >R 2 - R>
+                        over +
+                then THEN
+        R> 1 rshift                     ( x q y m)
+;
+
+: SQRTK                         ( x -- sqrt*1024)
+        0 max dup 0= if exit then
+        2 25 [ hex ] 20000000 [ decimal ] ( x q k m)
+        begin
+                3 pick over <           ( . . . . x m <)
+        while                           ( x q k m)
+                >R 1- R>
+                2 rshift
+        repeat
+        3 pick over 2* <                ( . . . . x m 2* <)
+                if 0 else 1 then        ( x q k m y)
+        SWAP ROT                        ( x q y m k)
+        0 do                            ( x q y m)
+                SQRTK-STEP
+        loop
+        2DROP NIP                       ( q)
+        1 rshift
+;
+
+||	( End of SQRTK Module )
+
+: SQROOT        -1 TUCK DO 2 + DUP +LOOP 2/ ;
+
+: SQUAREROOT			( radicand -- root )
+	0				( radicand root)
+	0 [ 1 1 begin 2* ?dup while 1 under+ repeat 2 - ] literal
+	DO				( x y)
+		2*
+		over i rshift		( . y x')
+		over 2* 1+		( . . x' y')
+		< not if		( x y)
+			dup		( x . y')
+			2* 1+ i lshift negate
+			under+		( x y)
+			1+
+		then
+	-2 +loop
+	nip				( root)
+;

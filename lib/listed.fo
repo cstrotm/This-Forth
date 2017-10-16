@@ -1,0 +1,58 @@
+( List File with Line Numbers on Non-Empty Lines )
+
+have TAB 0= [if]   --> tab   [then]
+
+( Print Character )
+
+: .CHAR						( char -- )
+	case
+		TAB-CHAR
+	of
+		TAB
+	else
+		EOL
+	of
+		NEW-LINE
+	else	
+		dup PRINT? not
+	if
+		drop
+	else
+		1 MORE   EMIT
+	0 endcase					( )
+;
+
+( Print Line)
+
+: .LINE						( line . -- )
+	0 col !
+	chars bounds ?DO				( )
+		i C@  .CHAR
+	1 chars +LOOP
+;
+
+( Print Line Number )
+
+4	VALUE	line-number-width
+
+: .LINE#	LINE @  line-number-width .R    space ;
+
+( List with Line Numbers )
+
+tr value	0	 LISTFILE 
+
+: LLN						( fileid -- )
+	TO LISTFILE					( )
+	0 LINE !
+	LISTFILE FILTER					( )
+		GET-LINE -trailing			( line .)
+		1 LINE +!
+		dup ?? .LINE#
+		.LINE					( )
+		CR
+	UNFILTER
+;
+
+: LISTED	input LLN ;
+
+ARGUMENT ?DUP ?DUP NIP [IF] LISTED [THEN]

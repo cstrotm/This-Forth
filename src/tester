@@ -1,0 +1,65 @@
+\ (c) 1993 Johns Hopkins University / Applied Physics Laboratory
+\ May be distributed freely as long as this copyright notice remains.
+\ Version 1.0  (Thank you John Hayes)
+\ *** MODIFIED for This Forth. ***
+HEX
+
+\ set the following flag to true for more verbose output; this may
+\ allow you to tell which test caused your system to hang.
+VARIABLE verbose
+   FALSE verbose !
+   TRUE verbose !
+
+: empty-stack \ ( ... -- ) Empty stack.
+   DEPTH ?DUP IF 0 DO DROP LOOP THEN ;
+
+CREATE the-test 88 CHARS ALLOT
+
+: error 	\ ( c-addr u -- ) Display an error message followed by
+		\ the line that had the error.
+   TYPE the-test COUNT TYPE CR \ display line corresponding to error
+   empty-stack 			\ throw away every thing else
+;
+
+VARIABLE actual-depth 		\ stack record
+CREATE actual-results 20 CELLS ALLOT
+
+: {
+	0 BEGIN 			( count)
+		get-char 	( count char)
+		DUP [CHAR] } <>
+	WHILE
+		1 under+ OVER CHARS the-test + C!
+	REPEAT
+	stack-char 		( count)
+	the-test C! 		( )
+	the-test COUNT please "~"
+;
+
+: -> 	\ ( ... -- ) Record depth and content of stack.
+   DEPTH DUP actual-depth ! 	\ record depth
+   ?DUP IF 			\ if there is something on stack
+      0 DO actual-results I CELLS + ! LOOP \ save them
+   THEN ;
+
+: } 	\ ( ... -- ) Compare stack (expected) contents with saved
+		\ (actual) contents.
+   DEPTH actual-depth @ = IF 	\ if depths match
+      DEPTH ?DUP IF 		\ if there is something on the stack
+         0 DO 			\ for each stack item
+	    actual-results I CELLS + @ \ compare actual with expected
+	    <> IF S" INCORRECT RESULT: " error LEAVE THEN
+	 LOOP
+      THEN
+   ELSE 				\ depth mismatch
+      S" WRONG NUMBER OF RESULTS: " error
+   THEN ;
+
+: testing \ ( -- ) Talking comment.
+   get-line  ( line .)
+   verbose @ IF
+       ." Testing " TYPE CR
+   ELSE
+       2DROP
+   THEN ;
+

@@ -1,0 +1,33 @@
+( File Pipes )
+
+| variable  PIPEWHICH
+
+: PIPENAME		( -- name . )
+	pipewhich @ 1 and if
+		s" pipe-A"
+	else
+		s" pipe-B"
+	then
+;
+
+: PIPEFILE ( -- file-id ) pipewhich @  1 and  th [here]  @ ;
+
+| : SET-PIPEFILE ( file-id -- ) pipewhich @  1 and  th [here]  !	;
+
+	0 , 0 ,
+
+: PIPE			( -- )
+	1 pipewhich +!
+	pipefile CLOSED
+	pipename OUTPUT	set-pipefile
+	pipefile DISPLAY
+;
+
+: THROUGH		( -- file-id )
+	0 DISPLAY
+	pipefile CLOSED
+	pipename INPUT set-pipefile
+	PIPEFILE 
+;
+
+||	( End of module. )

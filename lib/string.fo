@@ -1,0 +1,30 @@
+( STRING Word Set )
+
+( COMPARE and SLITERAL are in Low Level Kernel. )
+
+( -TRAILING and /STRING are in High Level Kernel. )
+
+: BLANK BL FILL ; 		( c-addr . -- )
+
+: CMOVE 				( from to length -- )
+	0 MAX CHARS OVER + SWAP ?DO ( c-addr)
+		COUNT I C!
+	1 CHARS +LOOP 	DROP
+;
+
+: CMOVE> 			( from to length -- )
+	DUP 0> not IF   2DROP DROP EXIT THEN
+	1- CHARS 0 SWAP DO 		( from to)
+		OVER I + C@ OVER I + C!
+	-1 CHARS +LOOP 			2DROP
+;
+
+: SEARCH 	( string . pattern . -- string' . flag )
+	2 PICK OVER - 1+ 0 MAX 0 ?DO
+		3 PICK I CHARS + OVER 2OVER COMPARE 0= IF
+			2DROP I /STRING TRUE
+			UNLOOP EXIT
+		THEN
+	LOOP
+	2DROP FALSE
+;

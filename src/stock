@@ -1,0 +1,112 @@
+( Stock Definitions Wil Baden 95-04-02 )
+
+\ get-char   word rth count get-char   word r count fopen stream
+
+have START 0= [IF]
+: START	s" autoload" s" r" fopen ?dup ?? stream ;
+[THEN]
+
+have GET-FILE [IF] have OK 0= [IF]
+: OK	get-file ?dup ?dup nip ?? included ;
+[THEN] [THEN]
+
+have ELECTIVE 0= [IF]
+: ELECTIVE      ~please 'PATH count -trailing s" ~.fo" s+ ' ; immediate
+[THEN]
+
+: LATEST	4 ( current ) has has 1+ has count ;  ( -- s . )
+
+: RUN	latest please "~ " ; immediate
+
+| : SPLIT|				( s . -- )
+	chars bounds ?do
+		i c@ [char] | = if    bl i c!   then
+	1 chars +loop
+;
+
+: ::	( :: xxx | mmm | a b c ... ;; ==> xxx a mmm :: xxx | mmm | b c ... ;;)
+	[char] | parse  2dup >R >R	( x .)
+	[char] | parse  2dup >R >R	( x . m .)
+	get-word 			( x . m . a .)
+	2dup s" ;;" s= if
+		R> R> R> R> 2drop 2drop 2drop 2drop 2drop exit
+	then
+	2dup split|
+	2swap R> R> R> R> 2swap please "~ ~ ~ :: ~|~| "
+; immediate
+
+||	( Hide SPLIT| -- Not an end-user word. )
+
+: ;; ; immediate
+
+: SET	get-word [char] ; parse 2swap please "~ ~ ! " ; immediate
+
+have WORDS 0= [IF]
+case   please " ; "   s" words" input stream   please ": WORDS "   0 endcase
+[THEN]
+
+: assign-file				( n "name" -- )
+	BL WORD DUP FIND NIP 0= IF
+		COUNT please "VALUE ~ "
+	ELSE
+		COUNT 2DUP 2DUP
+		please "~ if ~ closed then TO ~ "
+	THEN
+; immediate
+
+: ==>	~please "input assign-file ~ " ; immediate
+
+: <<	~please "display ~ 0 display " ; immediate
+
+: <==	~please "output assign-file ~ " ; immediate
+
+: >>	~please "case stream ~ unstream 0 endcase " ; immediate
+
+: shut	~please "0 assign-file ~ " ; immediate
+
+: STR	get-word get-word 2swap please 'get-word ~ ~ ' ; immediate
+
+have GET-FILE [if]
+: CHOOSE-FILE   get-file ;
+[else]
+: CHOOSE-FILE   cr ." Choose file: "   0 flushed   0 >> get-word ;
+[then]
+
+have PUT-FILE [if]
+: NEW-FILE  put-file ;
+[else]
+: NEW-FILE  cr  ." New file: " 0 flushed   0 >> get-word ;
+[then]
+
+: array     CREATE CELLS ALLOT IMMEDIATE DOES> (.) PLEASE "CELLS ~ + " ;
+
+: carray    CREATE CHARS ALLOT IMMEDIATE DOES> (.) PLEASE "CHARS ~ + " ;
+
+have RANDOM [IF]
+
+: URANDOM	RANDOM dup 2* xor ;
+
+: RANDOMIZE
+	TIME&DATE  12 * + 31 * + 24 * + 60 * + 60 * +  SET-RANDOM
+;
+
+[THEN]
+
+have COUNTER [IF]
+
+: TIMER counter swap - 16625 1000 */ . ; ( This is for Mac. )
+
+variable STARTING-TIME
+
+: TIME
+	[char] ; parse please
+	; case COUNTER starting-time ! ~ starting-time @ TIMER 0 endcase ;
+; immediate
+
+: M	please "1000000 * " ; immediate
+
+[THEN]
+
+VERSION
+
+\S	( end-of-file )

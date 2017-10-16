@@ -1,0 +1,76 @@
+( Display with font flowgraph 10  `U.S. - System 6  KCHR'. ) 
+
+ÊÛÊ: >ROT13                    ( char -- char )
+ÊטיÊcase    dup  BL or  [char] a -  13 U<
+ÊנןÊif      13 +
+Êןטיelse    dup  BL or  [char] n -  13 U<
+Êןנןif      13 -
+Êקשר0 endcase
+ÊÝÊ;
+
+ÊÛÊ: ROT13                     ( file -- )
+זח
+ןטי   filter
+ןנן           get-char >ROT13 emit
+ץםר   unfilter
+ÊÝÊ;
+
+ARGUMENT dup 0= [if] 2drop choose-file [then] INPUT dup ROT13 closed
+
+\S	end-of-file
+
+Ù Ú Û Ü Ý Þ ß א Ê  ב ג  ׁ
+ `   1   2   3   4   5   6   7        9   0   -
+ 
+ Ê ־ ד ה ו ז ח ט  י
+      Q   W   E   R   T   Y   U   I
+  
+  Ê  ך כ ל ם מ ן נ ס ע ®
+       A   S   D   F   G   H   J   K   L   :   '  
+   
+   Ê ף פ Ê  Êץ צ ק  רש
+        Z   X           B   N   M   ,   .
+
+All you need for structured logic:
+
+זח טי
+םמ ןנס
+ץצ קרש
+
+ T  Y   U  I
+ G  H   J  K  L
+ B  N   M  ,  .
+
+
+	ÊÊÊ	option-shift
+
+	ÊנÊÊ	K
+	
+	Êממ	HH
+
+IF	ÊטיÊ	UI
+
+ELSE	ÊןןÊ	JJ
+
+THEN	Êקר	M,
+
+BEGIN	זחÊÊ	TY
+
+WHILE	ןטי	JUI
+
+REPEAT	ץםר	BG,
+
+UNTIL	ץצÊ	BN
+
+DO	זחÊ	TY
+
+?DO	ÊטיÊ	UI
+	זחן	TYJ
+
+LOOP	ץצÊ	BN
+
++LOOP	ץצÊ	BN
+
+EXIT	ÊסÊ	L
+
+ESAC	Êקשר	M., 

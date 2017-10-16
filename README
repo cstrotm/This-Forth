@@ -1,0 +1,148 @@
+ThisForth -- a macro-oriented Forth based on Standard (ANS) Forth  94-08-16
+
+ThisForth features:
+
+	Integrated macro processing
+	Input/output re-assignment 
+	Portable implementation
+	Easy extensibility    
+	Pinhole	optimization
+
+ThisForth was written:
+
+(1)	To try out Standard (ANS) Forth.
+(2)	To integrate macro processing with Forth.
+(3)	To be able to use Forth	in a conventional environment.
+(4)	To have	Forth as an interpretive shell and scripting
+	language for applications.
+
+You should have:
+
+aforth.c        Processed Forth and Low Level Forth source for a Forth.
+fo.m4		The low	level Forth part of the	kernel.
+kernel.c	The straight C part of the kernel.
+rth		The high level Forth part of the kernel.
+llfc.m4		The low-level-Forth-for-C source.
+fo.h		Parameters and other cpp macros	for fo.c
+custom.m4	A file,	initially empty, for your application primitives.
+Makefile	Unix Makefile.	Burgle it for your turf.
+mac.c		Special	file for Macintosh console interface.
+eval		A file to let you evaluate Forth words in the command line.
+path		A file to set up a default path	for your electives.
+save-4th	A file used in building	a stand-alone.
+tester coretest	John Hayes' Core tests, modified for This Forth. 
+lib		A directory of examples	and extensions.
+DOPE
+MOREDOPE
+files
+glossary
+
+You should already have M4 and an ANSI C compiler.
+
+To build a core Forth, compile `aforth.c' and `kernel.c' together.
+How to do that is your problem.  Look over the Unix makefile for hints.  For
+GNU C on netcom.com the following worked
+
+	gcc -D__GNU__ aforth.c kernel.c -o aforth
+
+When you are successful, you can try a few tests.
+
+	aforth
+	1 2 - .
+	1 2 - u.
+	5 dup +	.
+	99 0 do i . loop
+	1 begin dup . 2* ?dup 0= until
+	s" Makefile" input constant in
+	in copy
+	: upcase filter get-char >upper emit unfilter ;
+	in upcase
+	bye
+	
+	aforth tester coretest
+	
+	aforth your-file-1 your-file-2
+	
+	aforth
+	s" your-file-1" included
+	s" your-file-2" included
+	
+	aforth eval '." 4th luv ?? honk" cr bye'
+
+To build a new version of This Forth, check the Makefile:
+
+On Unix use the AT&T M4, /usr/5bin/m4, rather than the BSD M4.
+
+The option -DFLOATING with M4 will give you the basic floating point
+words.
+
+`fo' does not contain the high level Forth part of the kernel.  To
+load the high level part, invoke as `fo rth'.
+
+`rth' has many provocative examples.
+The common implementation factors are subject to change without notice.
+
+Sooner than later you will want to make permanent extensions to
+the kernel and build a Forth with your personality.  Do something like:
+
+	fo rth _your_source_files_ path _your_elective_path_ save-4th
+	m4 -DEXTENDED fo.m4 > yourforth.c
+	cc yourforth.c kernel.c _your_custom_files_.c -o yourforth.
+
+Use whatever other options you used before with m4.
+
+*** IMPORTANT ***
+
+Because the naming rules for directories are different on different 
+platforms, and you may have your own ideas on where files should be kept, 
+you will have to define ELECTIVE for yourself.  You can use file `path'
+to aid you, or you can write your own.
+
+`ELECTIVE name' should turn `name' into a character string with the 
+relative or absolute search path and the suffix for your elective files.
+
+`--> name' can then be used to load an elective without your having
+to give the full path name.
+
+The following named extensions are built-in to the primitive kernel.
+
+ARGUMENT	( -- string . ) Get the next argument from the command line.
+CASE		Mark the control-flow stack.
+D+		( augend . addend . -- sum . )
+D-		( minuend . subtrahend . -- difference . )
+DISPLAY		( file-id -- ) Reassign file identity of output device.
+ERROR?		( -- errno ) Get Standard C library errno.
+ESAC		Resolve control-flow stack back to CASE, using THEN's.
+EXPOUND		The input source interpreter/compiler loop.
+FCLOSE FFLUSH FOPEN FSEEK FTELL	SYSTEM	Standard C library functions.
+GET-CHAR	( -- char ) Get and remove next character from input source.
+HAS		( n -- x ) What location n of codespace has.
+INLINE		Make preceding definition inline.
+NESTING		( -- n ) The depth of the return stack.
+NEXT-CHAR	( -- char ) Get character from input source without removing it.
+OUTSIDE		( -- n ) The depth of the compile time stack.
+PATCH		( x n -- ) Patch location n of codespace with x.
+PLEASE		<spaces><char><text><char> Insert <text> in input source.
+STACK-CHAR	( char -- ) Insert character in input source.
+STREAM		( file-id -- ) Assign file identity to input device.
+UNDER+		( a b c	-- a+c b )
+UNSTREAM	Restore previous file identity of input source.
+|		Mark the next definition as one to be disowned.
+||		Disown marked definitions.
+
+BYE COMPARE SEARCH-WORDLIST TIME&DATE
+
+The version of aforth.c here has been processed to remove multiple blank 
+lines.  See `ssp'.  The steps were:
+
+	pdm4 fo.m4 > fo.c
+	gcc -D__GNU__ fo.c kernel.c > fo
+	fo rth save-4th
+	pdm4 -DEXTENDED fo.m4 > foo.c
+	fo rth ssp foo.c > aforth.c
+
+Please tell me just how to improve these instructions.
+
+Let me know what you had to do on your platforms.
+
+Procedamus in pace -- Wil		wilbaden@netcom.com

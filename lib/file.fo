@@ -1,0 +1,69 @@
+: WRITE-FILE	display TYPE 0 display error? ;
+
+: READ-FILE				( c-addr . file -- length ioerror )
+	stream					( c-addr .)
+		0 ROT ROT bounds ?DO		( length)
+			get-char		( length char)
+			eof of    LEAVE    THEN
+			I C!			( length)
+			1+
+		1 CHARS +LOOP
+	unstream
+	error?
+;
+
+: CLOSE-FILE	fclose error? ; inline
+
+: R/O	C" r" ;
+: W/O	C" w" ;
+: R/W	C" r+" ;
+
+: BIN	
+	case	R/O of C" rb"
+	else	W/O of C" wb"
+	else	R/W of C" r+b"
+	else	count S" b" S+ 3 min [here] place [here] 
+	0 endcase
+; 4 chars allot
+
+: OPEN-FILE
+	COUNT fopen DUP 0= 
+;
+
+: FILE-POSITION	ftell DUP 1- = 0 SWAP ;
+
+: FILE-SIZE
+	DUP ftell >R
+		DUP 0 2 ( ie SEEK_END) fseek
+		DUP ftell SWAP
+	DUP R> 0 0 ( ie SEEK_SET) fseek
+;
+
+: REPOSITION-FILE 	rot rot fseek ;
+
+: READ-LINE			( c-addr . file -- length flag ior )
+	stream					( c-addr .)
+		next-char eof = if
+			unstream
+			2drop ( )
+			0 false 0		( 0 0 0)
+			exit
+		then				( c-addr .)
+		0 ROT ROT CHARS bounds ?DO	( length)	
+			get-char		( . char)
+			dup eol = 
+			orif dup eof = then
+				if drop leave then
+			i c!			( length)
+			1+
+		1 chars +loop
+	unstream
+	true error?
+;
+
+: WRITE-LINE			( c-addr . file -- ior )
+	display ( c-addr .) type ( ) cr   0 display error?
+;
+
+: CREATE-FILE   OPEN-FILE ;
+

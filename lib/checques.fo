@@ -1,0 +1,56 @@
+( A Check Writer, using sundry This Forth features. )
+
+: .#	th [HERE] @ execute ;				( 0..19	-- )
+      
+:noname	." ZERO " ; ,
+:noname	." ONE " ; ,
+:noname	." TWO " ; ,
+:noname	." THREE " ; ,
+:noname	." FOUR " ; ,
+:noname	." FIVE " ; ,
+:noname	." SIX " ; ,
+:noname	." SEVEN " ; ,
+:noname	." EIGHT " ; ,
+:noname	." NINE " ; ,
+
+:noname	." TEN " ; ,
+:noname	." ELEVEN " ; ,
+:noname	." TWELVE " ; ,
+:noname	." THIRTEEN " ; ,
+:noname	." FOURTEEN " ; ,
+:noname	." FIFTEEN " ; ,
+:noname	." SIXTEEN " ; ,
+:noname	." SEVENTEEN " ; ,
+:noname	." EIGHTEEN " ; ,
+:noname	." NINETEEN " ; ,
+
+: .## 	10 /mod th [HERE] @ execute   ?dup ?? .# ;	( 1..99 -- )
+
+:noname	; ,
+:noname	10 + ; ,
+:noname	." TWENTY " ; ,
+:noname	." THIRTY " ; ,
+:noname	." FORTY " ; ,
+:noname	." FIFTY " ; ,
+:noname	." SIXTY " ; ,
+:noname	." SEVENTY " ; ,
+:noname	." EIGHTY " ; ,
+:noname	." NINETY " ; ,
+
+: .###	100 /mod ?dup if .# ." HUNDRED " then .## ;	( 1..999 -- )
+
+: .######						( 1..999999 -- )
+	dup 2000 < not
+	orif dup 1000 1100 WITHIN then
+		if    1000 /MOD .### ." THOUSAND "    then
+	.###
+;
+
+: .AMOUNT						( u -- )
+	?dup 0= if    ." NONE " exit	then
+	0 1000000000 UM/MOD ?dup
+		if    .# ." American BILLION "   then
+	1000000 /MOD ?dup
+		if    .### ." MILLION "    then
+	.######
+;

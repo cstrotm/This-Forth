@@ -1,0 +1,42 @@
+( Crap Shoot, using CATCH-THROW )
+
+have RANDOM 0= if   --> random   then
+
+randomize
+
+have THROW 0= if   --> catch   then
+
+| : DICE   6 get-random 1+  6 get-random 1+  + ;
+
+| : WIN    1 throw ;
+
+| : LOSE   2 throw ;
+
+| : PASS
+        dice                            ( point)
+        dup .
+        2 of lose then
+        3 of lose then
+        7 of win then
+        11 of win then
+        12 of lose then
+        begin                           ( point)
+                dice                    ( point roll)
+                dup .
+                7 of lose then
+                over =
+        until                           ( point)
+        win     
+;
+
+: CRAPS
+        ['] PASS CATCH
+        case
+                1 of ." You win. " cr
+        else
+                2 of ." You lose. " cr
+        else
+                .. ." Can't happen. " cr
+        0 endcase
+;
+

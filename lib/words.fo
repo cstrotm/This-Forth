@@ -1,0 +1,37 @@
+( Formatted WORDS )
+
+have TAB 0= [if]    --> tab    [then]
+
+: >LINK         2 - ;
+: LINK>         2 + ;
+: LATEST        4 ( ie CURRENT ) has has LINK> ;
+: >NAME         1- has ;
+: .WORD         DUP IF DUP MORE TYPE TAB ELSE 2DROP THEN ;
+: .NAME         COUNT .WORD ;
+: .ID           >NAME .NAME ;
+: >PREVIOUS     >LINK has DUP ?? LINK> ;
+
+: WORDS				( | count -- )
+	DEPTH 0= ?? 0 			( count)
+	0 COL !
+	LATEST ( xt count) SWAP 0 DO	( xt)
+		DUP 0= ?? LEAVE
+		DUP .ID
+		>PREVIOUS
+	LOOP				DROP
+;
+
+have SEARCH 0= [if]    --> string    [then]
+
+: SIFT				( prefix . -- )
+	0 COL !
+	LATEST BEGIN			( prefix . xt)
+		DUP
+	WHILE
+		3DUP >NAME COUNT	( . . . pattern . name .)
+		2SWAP SEARCH NIP NIP IF	( prefix . xt)
+			DUP .ID
+		THEN
+		>PREVIOUS
+	REPEAT				2DROP DROP
+;

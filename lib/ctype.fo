@@ -1,0 +1,33 @@
+( Tests for character types.  Compare <ctype.h>. )
+
+( The simpler tests are competitive with table lookup;
+  the others are not used as much. )
+
+: PRINT?	BL -   95 U< ;
+: GRAPH?	BL 1+   94 U< ; 
+: upper?	[char] A -   26 u< ;
+: lower?	[char] a -   26 u< ;
+: alpha?	BL or   lower? ;
+: digit?	[char] 0 -   10 u< ;
+: alnum?	dup alpha? 0= if digit? else drop true then ;
+: space?	dup BL = if drop true else 9 - 5 u< then ;
+: cntrl?	dup BL u< if drop true else 127 = then ;
+: punct?	dup graphic? if alnum? 0= else drop false then ;
+
+: >UPPER	dup lower? if  [char] a -  [char] A +  then ;
+: >lower	dup upper? if  [char] A -  [char] a +  then ;
+
+: >digit				( character -- digit )
+		dup [char] 0 - 10 u<
+			if    [char] 0 -    exit then
+		BL or    dup [char] a -  26 u<
+			if    [char] a - 10 +    exit then
+		drop -1
+;
+
+: numeral?	>digit  base @ u< ;
+
+: lowercase	chars bounds ?do   i C@ >lower i C!   1 chars +loop ;
+: raisecase     chars bounds ?do   i C@ >upper i C!   1 chars +loop ;
+
+\S	end-of-file

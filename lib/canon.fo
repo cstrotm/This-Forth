@@ -1,0 +1,164 @@
+( CANONICAL form for Standard Programs -- 0.0.1. )
+( Note: This is not a Standard program. )
+
+( From the Standard: )
+(
+3.4.2 ... A system may be either case sensitive, treating
+upper- and lower-case letters as different and not matching,
+or case insensitive, ignoring differences in case while searching.
+)
+(
+3.3.1.2 ... Programs that use lower case for standard definition
+names or depend on the case-sensitivity properties of a system
+have an environmental dependency.
+)
+
+\       This means to me that Standard words should be in uppercase
+\       but user-defined words can be in lower case or mixed case
+\       provided the spelling is consistent.  The use of nothing but
+\       upper case is offensive in today's computing world. In a
+\       sample program , `on' was spelled two different ways in
+\       one definition, `off' was spelled three different ways.
+
+\       This program will convert Standard words, as given
+\       by an extensible wordlist, to upper case, and other words
+\       to lowercase.
+
+\       Underbar, `_', is upper case hyphen, `-'.  A common problem
+\       is remembering which has been used in a definition.  The
+\       Standard shows a definite preference for  `-'.  So this
+\       program converts `_' to `-'.  Words that are the same except
+\       for `_' versus '-' are really bad news.
+
+\       `-rot' and `bounds', which were deliberately rejected by
+\       the Committee, are changed to `ROT ROT' and `OVER + SWAP'. 
+\       This promotes consistency, and reduces the word load.
+
+\       The conversions only have to be done before publication, so
+\       you can continue to do whatever you're doing until then.
+
+\       This program also serves to check a program for non-Standard
+\       words -- they'll be in lower case (those that have letters).
+
+have standard-name 0= [IF]    --> standard    [THEN]
+
+: uppercase
+        CHARS bounds ?DO    I C@ >UPPER I C!    1 CHARS +LOOP
+;
+
+have lower? 0= [if] : lower? [CHAR] a -  26 U< ; [then]
+
+: >lower
+        case
+                DUP [CHAR] A - 26 U<
+        IF
+                [CHAR] A - [CHAR] a +
+        ELSE    
+                [char] _
+        OF
+                [char] -
+        esac
+;
+
+: lowercase
+        CHARS bounds ?DO    I C@ >lower I C!    1 CHARS +LOOP
+;
+
+: ?space next-char eol <> ?? SPACE ;
+
+: canon                         ( fileid -- )
+        filter                          ( )
+                CASE
+                        next-char graph? not
+                IF
+                        get-char EMIT
+                ELSE
+                        parse-word      ( word .)
+                        2DUP lowercase
+                        
+                        OVER C@ [CHAR] 0 =
+                IF
+                        2DUP uppercase
+                        TYPE ?space
+                ELSE
+                        case 2DUP [ parse-word c" ] sliteral s=
+                        orif 2DUP [ parse-word s" ] sliteral s= 
+                        orif 2DUP [ parse-word ." ] sliteral s=
+                        orif 2DUP [ parse-word abort" ] sliteral s=
+                        esac
+                IF
+                        2DUP uppercase
+                        TYPE SPACE
+                        [CHAR] " PARSE TYPE
+                        [CHAR] " EMIT
+                ELSE
+                        2DUP S" [char]" s=
+                IF
+                        2DUP uppercase
+                        TYPE SPACE
+                        parse-word TYPE ?space
+                ELSE
+                        2DUP S" (" s=
+                        orif 2DUP S" .(" s= THEN
+                IF
+                        TYPE   SPACE
+                        BEGIN
+                                get-char dup 0< not
+                        while   
+                                dup emit
+                                [char] ) =
+                        UNTIL THEN
+                ELSE
+                        2DUP S" -rot" s=
+                IF
+                        2DROP ." ROT ROT" ?space
+                ELSE    
+                        2DUP S" bounds" s=
+                IF
+                        2DROP ." OVER + SWAP" ?space
+                ELSE
+                        2dup s" <=" s=
+                if
+                        2drop please " > not "
+                else
+                        2dup s" >=" s=
+                if
+                        2drop please " < not "
+                else
+                	      2dup s" 3drop" s=
+                if
+                		2drop ." 2DROP DROP" ?space
+                else
+                		2dup s" 4drop" s=
+                if
+                		2drop ." 2DROP 2DROP" ?space
+                else
+                		2dupÊs" s=" s=
+                if
+                		2drop ." COMPARE 0=" ?space
+                else
+                		2dup s" orif" s=
+                if
+                		2drop ." ?DUP 0= IF" ?space
+                else
+                		2dup s" andif" s=
+                if
+                		2drop ." DUP IF DROP" ?space
+                else
+                		2dup s" ??" s=
+                if
+                		2drop get-word please "IF ~ THEN "
+                else
+                        2DUP standard-name SEARCH-WORDLIST DUP ?? NIP
+                        orif dup 1 = then
+                IF
+                        2DUP uppercase
+                        TYPE ?space
+                ELSE
+                        TYPE ?space
+                esac
+        unfilter
+;
+
+ARGUMENT dup 0= [IF] 2drop choose-file [THEN] s" r" opened
+?dup [if] canon [then]

@@ -1,0 +1,33 @@
+( Creates a stack called 'word' with n cells. )
+( The first cell is the stackpointer. )
+: stack CREATE    , CELLS ALLOT ;
+
+: push 			( x stack -- )
+	1 CELLS OVER +!
+	@ !
+;
+
+: top 			( stack -- x )
+	@ @
+;
+
+: pop 			( stack -- )
+	-1 CELLS SWAP +!
+;
+
+: stack-empty? 		( stack -- flag )
+	DUP @ =
+;
+
+: reset-stack 		( stack -- )
+	DUP !
+;
+
+: stack-depth		( stack -- depth )
+	DUP @ SWAP - 1 CELLS /
+;
+
+: stack-as-array 	( stack -- array count )
+	DUP stack-depth		( array count)
+	1 CELLS under+ 		( array count)
+;

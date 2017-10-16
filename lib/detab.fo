@@ -1,0 +1,16 @@
+get-char				constant TAB-CHAR
+
+8	value		TAB-STOP
+
+: DETAB					( file -- )
+	0 swap filter				( column)
+		get-char			( column char)
+		case	tab-char
+		of	tab-stop 2dup mod - dup spaces +
+		else	eol
+		of	cr    drop 0
+		else
+			emit	1+
+		0 endcase			( column)
+	unfilter				drop
+;

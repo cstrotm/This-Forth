@@ -1,0 +1,19 @@
+( SEE	Rudimentary version for debugging code generation. )
+
+( SEARCH-ORDER will break this definition. )
+
+: (SEE)				( xt -- )
+	2 -				( link)
+	0 has                           ( link nextname)
+	BEGIN                           ( link nextname)
+		2DUP has = NOT
+	WHILE
+		has
+	REPEAT
+	SWAP                            ( nextname link)
+	DUP 4 .R    ." : "
+	DO ( ) I has X.    LOOP         ( )
+;
+
+: SEE ' (SEE) ;
+

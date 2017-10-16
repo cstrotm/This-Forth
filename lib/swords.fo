@@ -1,0 +1,38 @@
+( Sorted Words )
+
+have QSORT 0= [if]    --> qsort    [then]
+
+have .WORD 0= [if]    --> words    [then]
+
+: RESET-STACK	dup ! ;
+: PUSH  	1 cells over +!    @ ! ;  
+: STACK-AS-ARRAY	dup @ over - 1 cells /    1 cells under+ ;   
+
+: .WORDS                                ( word-stack -- )
+        NEW-LINE
+        STACK-AS-ARRAY 0 ?DO ( a-addr) i th OVER @ .NAME    LOOP
+        DROP
+;
+
+: SWORDS
+        DEPTH 0= ?? LATEST
+        ALIGN   HERE RESET-STACK
+        begin
+                ?DUP
+        while
+                dup >NAME HERE PUSH
+                >PREVIOUS
+        repeat
+        HERE STACK-AS-ARRAY ['] CCOMPARE QSORT
+        HERE .WORDS
+;
+
+\S	END-OF-FILE
+
+( The Rest of the Stack Words )
+
+: POP		-1 cells swap +! ;
+
+: TOP		@ @ ;
+
+: STACK-EMPTY?	DUP @ = ;

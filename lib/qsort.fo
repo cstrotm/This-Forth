@@ -1,0 +1,106 @@
+( Hoare's Quicksort )( Non-Recursive )( Wil Baden 1967-1993 )
+( Standard Forth CORE EXT with | and NOT )
+( For Standard Forth: raisecase, remove `|', change `NOT' to `0=' )
+
+| variable      #INORDER
+
+: EXCHANGE      2dup @ >r @ swap ! r> swap ! ;  ( x y -- )
+
+| : OrderThree                                  ( lo hi mid -- lo hi mid )
+	>R                                              ( lo hi)
+		over @ R@ @ #INORDER @ execute 0>
+			if   over R@ EXCHANGE   then
+		R@ @ over @ #INORDER @ execute 0> if
+			R@ over EXCHANGE
+			over @ R@ @ #INORDER @ execute 0>
+				if   over R@ EXCHANGE   then
+		then
+	R>                                              ( lo hi mid)
+;
+
+| variable  guess
+
+| : SkipLowers                                  ( x y -- x y )
+	>R
+		begin
+			cell+
+			dup @ guess @ #INORDER @ execute 0< not
+		until
+	R>
+;
+
+| : SkipHighers                                 ( . y -- . y )
+	begin
+		1 cells -
+		guess @ over @ #INORDER @ execute 0< not
+	until
+;
+
+| : Partition                                   ( lo hi -- lo y x hi )
+	2dup over - 2/ aligned +                        ( lo hi mid)
+	OrderThree
+	@ guess !                                       ( lo hi)
+	2dup                                            ( lo hi x y)
+		begin
+			SkipLowers
+			SkipHighers
+			2dup > not
+		while
+			2dup EXCHANGE
+			2dup 2 cells - >
+		until
+			>R cell+ R>
+			1 cells -
+		then
+	SWAP ROT                                        ( lo y x hi)
+;
+
+| : SmallerSectionFirst                         ( lo y x hi -- lo y x hi)
+	2over 2over swap - >r swap - r> <
+		if    2swap    then
+;
+
+| : Hoarify                                     ( x y -- ... x y)
+	begin   ( `SortSnapShot' goes here. )
+		2dup swap - 2 cells >
+	while
+		Partition                               ( ... lo y x hi)
+		SmallerSectionFirst
+	repeat                                          ( ... lo hi)
+;
+
+| : OrderAPair                                  ( lo hi -- )
+	2dup = not if
+		over @ over @ #INORDER @ execute 0>
+			if    2dup EXCHANGE    then
+	then                                            2drop
+;
+
+| : ShortOrder                                  ( lo hi -- )
+	2dup swap - 1 cells > if
+		dup 1 cells -                           ( lo hi mid)
+		OrderThree
+		drop 2drop
+	else
+		OrderAPair                              ( )
+	then
+;
+
+: QSORT                                         ( a-addr n xt -- )
+	#INORDER !                                      ( a-addr n)
+	dup 0= if    2drop exit    then
+	1-   CELLS   OVER +                             ( lo hi)
+	DEPTH >R
+		BEGIN                                   ( ... lo hi)
+			Hoarify                         ( ... lo hi)
+			ShortOrder                      ( ...)
+			DEPTH R@ <
+		UNTIL                                   ( )
+	R> DROP
+;
+
+( Function to compare Counted Strings -- not part of qsort )
+
+: CCOMPARE ( c-addr c-addr -- -1|0|1 ) >R count R> count COMPARE ;
+
+||      ( End of Module. )

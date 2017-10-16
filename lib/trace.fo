@@ -1,0 +1,78 @@
+( Insert TRACE in a definition to trace the source-code. )
+( A line beginning with a word beginning with `;' turns if off. )
+( Warning: Do not trace lines containing `;'.)
+
+: TRACE				( -- )
+	get-line -TRAILING		( ... line .)
+	DUP 0= IF    2DROP please |trace | EXIT   THEN
+	2dup type cr
+	CASE
+		OVER C@ [CHAR] ; = 
+	IF
+		please |.S CR ~ |
+	ELSE
+		please |trace |
+		EOL stack-char
+		2dup please |s; ~; trace-type ~ |
+	0 ENDCASE			( ...)
+; IMMEDIATE
+
+: s;	[CHAR] ; PARSE POSTPONE SLITERAL ; IMMEDIATE
+
+: ;TRACE ; IMMEDIATE
+
+variable DEBUG	200 DEBUG !
+
+variable STEP	0 STEP !
+
+: trace-type			( string . -- )
+	DEBUG @ IF
+		2>R ." ( " .S ." ) " 2R> TYPE CR ( 0 flushed )
+		-1 DEBUG +!
+		DEBUG @ 0= if
+			200 DEBUG !
+			quit
+		then
+		STEP @ IF
+			KEY DROP
+			-1 STEP +!
+		THEN
+	ELSE
+		2DROP
+	THEN
+;
+
+\S	END-OF-FILE
+
+.( Example. )
+
+: GCD	TRACE		( n m -- gcd )
+	BEGIN	
+		?DUP
+	WHILE
+		TUCK MOD
+	REPEAT
+;
+
+4 6 GCD .
+
+\S	END-OF-FILE
+
+( 4 6 ) 	( n m -- gcd )
+( 4 6 ) 	BEGIN	
+( 4 6 ) 		?DUP
+( 4 6 6 ) 	WHILE
+( 4 6 ) 		TUCK MOD
+( 6 4 ) 	REPEAT
+( 6 4 ) 		?DUP
+( 6 4 4 ) 	WHILE
+( 6 4 ) 		TUCK MOD
+( 4 2 ) 	REPEAT
+( 4 2 ) 		?DUP
+( 4 2 2 ) 	WHILE
+( 4 2 ) 		TUCK MOD
+( 2 0 ) 	REPEAT
+( 2 0 ) 		?DUP
+( 2 0 ) 	WHILE
+2 
+2 (OK)

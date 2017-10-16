@@ -1,0 +1,160 @@
+( SAVE-4TH --                          Wil Baden           94-08-28)
+( Must not change HERE. )
+
+( Use:  fo rth _source_files_ save-4th )
+
+( Creates files:    rth.m4   hi.tmp )
+( `rth.m4' is Low Level Forth code to reconstruct your codespace. )
+( `hi.tmp' is source for a word that is executed and discarded
+           to initialize your dataspace. )
+( `rth.m4' and `hi.tmp' can be deleted after being used. )
+
+have WORDS 0= if
+	s" words" input
+	        please " ; "
+	        stream
+	please ": words "
+then
+
+MARKER
+******
+
+: DATA-DUMP				( a-addr . -- )
+	bounds ?do
+		i @  1 .r  ."  , "
+	1 cells +loop
+;
+
+16 cells constant DATA-SPREAD
+
+: .DATASPACE
+	BASE    ( BASE is the first address in dataspace. )
+	        ALIGN HERE over -               ( a-addr size)
+	begin
+		dup
+	while
+		2dup DATA-SPREAD min DATA-DUMP
+		CR
+		dup DATA-SPREAD min /STRING
+	repeat				        2drop
+;
+
+: SAVE-DATASPACE		( -- )
+	." HERE BASE ALIGN HERE - ALLOT " CR
+	.DATASPACE
+	." HERE MAX HERE - ALLOT " CR
+;
+
+s" hi.tmp" output dup display
+	." : HI " CR
+	SAVE-DATASPACE
+	." ******" CR
+	have STARTUP if ." STARTUP CR " then
+	have START if ." START CR " then
+	." ; " CR
+0 display closed
+
+******
+MARKER
+******
+s" hi.tmp" INCLUDED
+
+case c" The Next Available Namespace " 0 endcase
+	constant FINGER
+
+: .BYTE				( byte -- )
+	case 
+		dup [char] " =
+	orif
+		dup [char] \ =
+	orif
+		dup [char] ' =
+	orif
+		dup [char] ` =
+	orif
+		dup print? NOT
+	0 endcase if
+		1 .r ." ,"
+	else
+		." '" emit ." ',"
+	then
+;
+
+: .BYTES			( c-addr . -- )
+	bounds ?do
+		i c@ .byte
+	loop
+;
+
+16 constant NAME-SPREAD
+
+: .NAMESPACE		( c-addr . -- )
+	begin
+		dup
+	while
+		2dup NAME-SPREAD min .BYTES
+		CR
+		dup NAME-SPREAD min /STRING
+	repeat				2drop
+;
+
+( By convention BL is the first definition in RTH. )
+
+: SAVE-NAMESPACE
+	['] BL 1- has FINGER over - .NAMESPACE
+;
+
+: CODE-DUMP			( code-addr . -- )
+	bounds ?do
+		i has 1 .R ." ,"
+	loop
+;
+
+16 constant CODE-SPREAD
+
+: .CODESPACE			( code-addr . -- )
+	begin
+		dup
+	while
+	        2dup CODE-SPREAD min CODE-DUMP
+		CR
+		dup CODE-SPREAD min /STRING
+	repeat				2drop
+;
+
+: SAVE-CODESPACE		( -- )
+	['] BL 2 - ['] FINGER 2 - over - .CODESPACE
+;
+
+: CAPTURE				( -- )
+	." divert(NAMESPACE)" CR
+	SAVE-NAMESPACE
+	." divert(CODESPACE)" CR
+	SAVE-CODESPACE
+	." divert(MAIN)" CR
+	." define(`LAST',"
+		['] FINGER 2 - HAS 1 .R
+		." )"
+	CR
+	." define(`NEXT',"
+		['] FINGER 2 - 1 .R
+		." )"
+	CR
+	." define(`FINGER',"
+		FINGER 1 .R
+		." )"
+	CR
+;
+
+s" rth.m4" output dup display 
+	." #define HI " CR
+	CAPTURE
+0 display closed
+
+BYE
+
+The following is in fo.m4 just before the Big Switch statement.
+
+# ifdef HI
+	unchar(EOL), unchar('I'), unchar('H');
+# endif

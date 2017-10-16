@@ -1,0 +1,23 @@
+( High Level Forth Definitions for Floating Point )
+
+: FLOATS	please '8 * ' ; IMMEDIATE
+
+: FLOAT+	please '8 + ' ; IMMEDIATE
+
+: FALIGNED	1 FLOATS + 1-   -1 FLOATS AND ;   ( Presumes power of 2. )
+
+: FALIGN	HERE FALIGNED HERE - ALLOT ;
+
+: FVARIABLE	CREATE    0 , 0 , ;
+
+\ : F, 		FALIGN    HERE F!   1 FLOATS ALLOT ;
+
+: FCONSTANT	get-word will please ": ~ FLITERAL ; " expound ;
+
+: FNEGATE	0.0 FSWAP F- ;
+
+: FMAX		FOVER FOVER F< IF FSWAP THEN FDROP ;
+
+: FMIN		FOVER FOVER F< 0= IF FSWAP THEN FDROP ;
+
+

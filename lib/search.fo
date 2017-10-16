@@ -1,0 +1,109 @@
+( SEARCH ORDER Word Set   (Single Thread)( )
+
+| 4     constant        CURRENT
+| 5     constant        CONTEXT
+| 8     constant        WORDLISTS
+| 8     constant        NEW-WORDLISTS
+
+CONTEXT WORDLISTS +     constant        FORTH-WORDLIST  ( -- wid )
+(
+Return wid, the identifier of the word list that includes all standard
+words provided by the implementation.  This word list is initially the
+compilation word list and is part of the initial search order.
+)
+
+: SET-ORDER                             ( widN ... wid1 N -- )
+(
+Set the search order to the word lists identified by widN ... wid1 .
+Subsequently, word list wid1 will be searched first, with word list widN
+searched last.
+
+If N is zero, empty the search order.
+
+If N is minus one, set the search order to the implementation-defined
+minimum search order.
+
+The minimum search order shall include the words FORTH-WORDLIST and
+SET-ORDER .
+
+A system shall allow N to be at least eight.
+)
+	dup 0< if drop FORTH-WORDLIST 1 then
+        WORDLISTS 0 do   0 CONTEXT i + patch   loop
+        0 ?do
+                CONTEXT i + patch
+        loop
+;
+
+(
+        Note: In this implementation the `minimum search order' is the
+        default search order of FORTH-WORDLIST only.
+)
+
+: SET-CURRENT                           ( wid -- )
+(
+Set the compilation word list to the word list identified by wid .
+)
+        CURRENT patch
+;
+
+: DEFINITIONS                           ( -- )
+(
+Make the compilation word list the same as the first word list in the
+search order.  Specifies that the names of subsequent definitions will
+be placed in the compilation word list. Subsequent changes in the search
+order will not affect the compilation word list.
+)
+        CONTEXT has  SET-CURRENT
+;
+
+: GET-CURRENT                           ( -- wid )
+(
+Return wid, the identifier of the compilation word list.
+)
+        CURRENT has
+;
+
+: GET-ORDER                             ( -- widN ... wid1 N )
+(
+Returns the number of word lists N in the search order and the word list
+identifiers widN ... wid1 identifying these word lists.  wid1 identifies
+the word list that is searched first, and widN the word list that is
+searched last.  The search order is unaffected.
+)
+        0 WORDLISTS 0 do
+                dup CONTEXT + has 0= ?? leave
+                1+
+        loop
+        dup >R
+                begin
+                        ?dup
+                while
+                        1-
+                        dup CONTEXT + has swap
+                repeat
+        R>
+;
+
+: WORDLIST                              ( -- wid )
+(
+Creates a new empty word list, returning its word list identifier wid .
+
+The new word list may be returned from a pool of preallocated word lists
+or may be dynamically allocated in data space.
+
+A system shall allow the creation of at least 8 new word lists in
+addition to any provided as part of the system.
+)
+        FORTH-WORDLIST 1+ NEW-WORDLISTS bounds do       ( wid)
+                i has 0< if
+                        0 i patch
+                        i unloop exit
+                then
+        loop
+        TRUE ABORT" No more new WORDLISTS. "
+;
+
+||	( End of SEARCH-ORDER Word Set )
+
+

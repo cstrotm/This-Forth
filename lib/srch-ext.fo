@@ -1,0 +1,71 @@
+( Search-Order Extension Words )
+
+have SET-ORDER 0= [if]   --> search   [then]
+
+: ALSO						( -- )
+(
+Transform the search order consisting of widn , ... wid2 , wid1, where
+wid1 is searched first, into widn , ... wid2 , wid1 , wid1 .  An
+ambiguous condition exists if there are too many word lists in the
+search order.
+)
+	GET-ORDER ?DUP IF OVER SWAP 1+ SET-ORDER THEN
+;
+
+: ONLY						( -- )
+(
+Set the search order to the implementation-defined minimum search order.
+The minimum search order shall include the words FORTH-WORDLIST and
+SET-ORDER .
+)
+	-1 SET-ORDER
+;
+
+| : DO-VOCABULARY
+	DOES> >R
+		GET-ORDER
+		?DUP IF
+			NIP R> SWAP
+		ELSE
+			R> 1
+		THEN
+	SET-ORDER
+;
+
+begin -1 set-order definitions forth-wordlist 1 set-order true until
+
+FORTH-WORDLIST CONSTANT FORTH DO-VOCABULARY		( -- )
+(
+Transform the search order consisting of widn , ... wid2 , wid1, where
+wid1 is searched first, into widn , ... wid2 , wid[FORTH-WORDLIST] .
+)
+
+definitions
+
+: ORDER						( -- )
+(
+Display the word lists in the search order in their search order
+sequence, from first searched to last searched.  Also display the word
+list into which new definitions will be placed.  The display format is
+implementation dependent. ORDER may be implemented using pictured
+numeric output words.  Consequently, its use may corrupt the transient
+region identified by #> .
+)
+	GET-ORDER begin ?dup while swap . 1- repeat
+	cr
+	GET-CURRENT .
+;
+	
+: PREVIOUS					( -- )
+(
+Transform the search order consisting of widn , ... wid2 , wid1, where
+wid1 is searched first, into widn , ... wid2 . An ambiguous condition
+exists if the search order was empty before PREVIOUS was executed.
+)
+	GET-ORDER    ?dup if    NIP   1-    SET-ORDER then
+;
+
+: VOCABULARY  ( name -- ) WORDLIST CONSTANT DO-VOCABULARY ;
+
+|| ( End of SEARCH-ORDER EXTENSION Word Set )
+

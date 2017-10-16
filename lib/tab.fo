@@ -1,0 +1,21 @@
+( Stock	Words	Simple Text Formatting	Wil Baden	94-08-09 )
+
+variable	COL
+variable	LINE
+tr value	72	LINE-LEN
+tr value	56	PAGE-LEN
+
+: ?spaces	( n -- ) LINE-LEN COL @ -  min   0 max   dup COL +!  SPACES ;
+
+tr value	8	TAB-STOP
+
+: TAB	( -- )	COL @ TAB-STOP tuck mod -  ?spaces ;
+
+: NEW-LINE ( -- ) CR    0 COL !    1 LINE +! ;
+
+: MORE						( n -- )
+		dup  COL @ +  LINE-LEN > ?? NEW-LINE
+		COL +!				 	(  )
+;
+
+get-char				constant	TAB-CHAR  

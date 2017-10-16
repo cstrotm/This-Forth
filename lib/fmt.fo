@@ -1,0 +1,73 @@
+( FMT -- format words in columns, or `1 to tab-stop' fill paragraphs. )
+
+have TAB 0= [if]   --> tab   [then]
+
+: FMT					( fileid -- )
+	0 col !
+	1 swap filter				( count)
+		PARSE-WORD			( count word .)
+		dup if
+			dup more   TYPE		( count)
+			TAB
+			drop 0
+		else				( count word .)
+			2drop			( count)
+			REFILL DROP
+			case
+				case dup 0 =
+				andif col @
+				andif col @ line-len 2/ <
+				0 endcase
+			if
+				NEW-LINE
+			else
+				dup 1 =
+			if
+				NEW-LINE NEW-LINE
+				1+
+			else
+				1+
+			0 endcase
+		then
+	unfilter				drop
+;
+
+( Word and Line Count )
+
+: WLC					( fileid -- words lines )
+	0 0 rot filter
+		PARSE-WORD nip if
+			1 under+
+		else
+			1+
+			refill drop
+		then
+	unfilter
+;
+
+( TRIM trailing spaces from lines. )
+
+: TRIM					( file-id -- )
+	filter
+		GET-LINE -trailing TYPE   CR
+	unfilter
+;
+
+( REVERSE the order of the records in a file. )
+
+: REVERSE				( fileid -- )
+	align here >R
+		dup FILTER
+			dup told ,
+			get-line 2drop
+		UNFILTER
+		STREAM			( )
+			begin
+				here R@ <>
+			while
+				0 -1 cells allot here @ 0 sought
+				get-line type    cr
+			repeat
+		UNSTREAM
+	R> drop
+;

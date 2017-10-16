@@ -1,0 +1,26 @@
+( SSP -- Replace Multiple Blank Lines with a Single Line 94-12-11 )
+
+( Use:
+	fo rth
+	s" ssp" included
+	s" _filename_" input constant in
+	s" _newfilename_" output constant out
+	out display   in ssp   0 display   out closed
+   or:
+	fo rth ssp _filename_ > _newfilename_
+)
+
+: ssp					( file -- )
+	filter					( )
+		get-line -trailing		( s .)
+		dup 0= if
+			cr
+			begin			2drop
+				get-line -trailing ( s .)
+			dup until
+		then
+		type cr			        ( )
+	unfilter
+;
+
+ARGUMENT ( s .) dup if   s" input SSP BYE" evaluate   then   2drop ( )

@@ -1,0 +1,31 @@
+( Define the ELECTIVE path. )
+
+( Used: fo rth path unix
+(   or: fo rth path dos
+(   or: fo rth path mac
+(   or: fo rth path _something_else_
+)
+
+ARGUMENT
+case
+        case    2dup s" unix" S= if 2drop s" ../lib/"
+        else    2dup s" dos" S= if 2drop s" ..\lib\"
+        else    2dup s" mac" S= if 2drop s" ::lib:"
+        0 endcase
+0 endcase
+
+create PATH s,
+
+( For example.
+(        `fo rth path unix' will define
+        create PATH    s" ../lib/" s,
+
+(       `fo rth path _something_else_' will define
+        create PATH    s" _something_else_" s,
+
+( `PATH' has late-binding (because of `please' )( and you can redefine it.
+)
+
+have ELECTIVE 0= [IF]
+: ELECTIVE      ~please 'PATH count -trailing s" ~.fo" s+ ' ; immediate
+[THEN]

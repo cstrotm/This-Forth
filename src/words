@@ -1,0 +1,37 @@
+( Rudimentary WORDS using primitive words only.  00B06 94.11.01 )
+
+( Use: fo words
+(  or: fo rth words
+(  or: fo rth _your_stuff_ words
+(  or: fo rth _your_stuff_
+	_more_of_your_stuff_
+	s" words" included
+( etc.
+)
+
+( : WORDS )				( n -- )
+	depth 0= if    0    then
+	4 ( ie CURRENT ) has has
+		0				( n link col)
+	rot 0 do
+		over 0= if  leave then
+		>R				( link)
+			dup 1 + has count	( . string .)
+			dup 1 + R@ + 78 > if
+				cr
+				0 R> drop >R
+			then
+			dup if
+				dup 1 + R> + >R
+				type 1 spaces
+			else 2drop then		( link)
+			has
+		R>				( link col)
+	loop					2drop
+( ; )
+
+(
+	To add WORDS to the dictionary:
+
+	case   please " ; "   s" words" input stream   please ": WORDS "   esac
+)

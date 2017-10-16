@@ -1,0 +1,78 @@
+( A simple file browser )
+
+	have .LINE 0= [if]    --> listed    [then]
+	have PAGE 0= [if]   : PAGE 12 EMIT ;    [then]
+
+| variable	line-number
+| variable	file-offset
+tr value	20	LINES/SCREEN
+
+: TOP
+	LISTFILE REWIND
+	1 line-number !
+	0 file-offset !
+;
+
+| : catch-up					( n -- )
+	BEGIN
+		dup line-number @ >
+	WHILE
+		next-char EOF <>
+	while
+		GET-LINE 2DROP
+		1 line-number +!
+	repeat
+		TOP
+	THEN					drop
+;
+
+| : show-some
+	LISTFILE  file-offset @  0 SOUGHT	( -- )
+	LISTFILE stream
+		line-number @  LINES/SCREEN 2 +  bounds
+		DO
+			next-char EOF = ?? leave
+			GET-LINE			( line .)
+			dup if	 i 4 .r   space   then
+			.LINE				( )
+			CR
+		LOOP
+	unstream LISTFILE rewind
+;
+
+| : show-more?
+	NEXT-CHAR EOL =	if get-char drop then
+	NEXT-CHAR EOL =	if please "N " then
+;
+
+: L	PAGE   show-some   show-more? ;
+
+: T						( n	-- )
+	1 max   dup line-number @ < ?? TOP
+	LISTFILE stream
+		LISTFILE file-offset @	0 SOUGHT
+		catch-up					( )
+		LISTFILE TOLD  file-offset !
+	unstream
+	L
+;
+
+: N	line-number @  LINES/SCREEN  +	 T ;   ( ``next'' )
+: B	line-number @  LINES/SCREEN  -	 T ;   ( ``back'' )
+: H	line-number @  LINES/SCREEN  2/  - T ;  ( ``halfback'' )
+
+: renovate					( fileid addr -- )
+	2dup @ <> if
+		dup @ ?dup ?? closed
+	then
+	!
+;
+
+: RE	~please "['] ~ >body renovate " ; immediate
+
+: LOOK	~please	"ELECTIVE ~ BROWSE " ;
+: BROWSE	input re LISTFILE ( ) TOP   L ;
+
+||	\S	END-OF-FILE
+
+ARGUMENT DUP [IF] BROWSE [ELSE] 2DROP [THEN]

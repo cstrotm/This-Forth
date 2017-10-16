@@ -1,0 +1,40 @@
+( Gregorian Calendar )
+( Not valid for dates in Julian Calendar. )
+( Written because I wanted `cal' in a non-Unix environment. )
+
+: jdn 			( dd mm yyyy -- jdn )
+	DUP 100 > not IF    1900 +    THEN
+	DUP 1583 < ABORT" Not valid for dates in Julian Calendar. "
+	>R 			( dd mm)
+		3 -    DUP 0< IF    12 +   -1 r+!    THEN
+		306 *    5 +    10 /
+		+ 		( day)
+	R> 			( day yyyy)
+	100 /MOD >R
+		1461 4 */ + 	( day)
+	R> 146097 4 */ +
+	1721119 + 		( Julian Day )
+;
+
+23 5 1968 jdn 2440000 = 0= ABORT" Wrong Julian Day Number. "
+ 1 1 1965 jdn 2438762 = 0= ABORT" Wrong Julian Day Number. "
+
+: dow 1+    7 MOD ;
+
+: cal 			( mm yy -- )
+	CASE DEPTH 0=
+	IF TIME&DATE 2>R 4drop 2R>
+	ELSE DEPTH 1 =
+	IF TIME&DATE >R DROP 4drop R>
+	0 ENDCASE
+	1 ROT ROT 		( 1 mm yy)
+	3dup jdn >R
+		1 under+ jdn 	( days)
+	R> 			( next-mo this-mo)
+	DUP dow 3 * SPACES
+	1 ROT ROT DO 		( date)
+		DUP 3 .R
+		1+
+		I dow 6 = ?? CR
+	LOOP 			DROP
+;

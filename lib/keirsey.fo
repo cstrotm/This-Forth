@@ -1,0 +1,523 @@
+( *	K E I R S E Y   T E M P E R A M E N T   S O R T E R
+
+In the 1950's Isabel Myers and her mother Kathryn Briggs developed a tool for
+personality analysis, the Myers-Briggs Type Indicator, based on Carl Jung's
+1924 "Psychological Types."  This became so widely used that it created an
+international interest in Jung's theory.  David Keirsey and Marilyn Bates,
+"Please Understand Me," is an excellent exposition, with a version of the test,
+the Keirsey Temperament Sorter.
+
+This file contains a program to administer Keirsey's test.
+
+* )
+
+BL WORD RANDOM FIND NIP 0= [IF]
+
+	( Default RNG from the C Standard.  `RAND' has reasonable
+	( properties, plus the advantage of being widely used. )
+
+	VARIABLE RANDSEED
+	
+	32767 CONSTANT MAX-RAND
+	
+	: RAND					( -- random )
+		RANDSEED @ ( random) 1103515245 *   12345 +   DUP RANDSEED !
+		16 RSHIFT   MAX-RAND AND
+	;
+	
+	: SRAND ( n -- ) RANDSEED ! ;  1 SRAND
+	
+( Don't mumble. )
+	
+: random	( -- n )	RAND ;
+
+: set-random	( n -- )	SRAND ;
+	
+: get-random					( n -- u )
+	random * MAX-RAND 1+ /
+;
+
+( Mix 'em up. )
+
+: randomize					( -- )
+	TIME&DATE  12 * + 31 * + 24 * + 60 * + 60 * +  set-random
+;
+	
+[THEN]
+
+randomize
+
+BL WORD ARRAY FIND NIP 0= [IF]
+: array	CREATE 0 ?DO 0 , LOOP DOES> SWAP CELLS + ;
+[THEN]
+
+BL WORD PARSE-WORD FIND NIP 0= [IF]
+: parse-word	BL WORD COUNT ;
+[THEN]
+
+BL WORD GET-LINE FIND NIP 0= [IF]
+: get-line	-1 PARSE    REFILL DROP ;
+[THEN]
+
+BL WORD PLACE FIND NIP 0= [IF]
+: place	2dup >R >R    CHAR+ SWAP CHARS MOVE    R> R> C! ;
+[THEN]
+
+BL WORD S, FIND NIP 0= [IF]
+: s,	HERE place   HERE C@ 1+ CHARS ALLOT ;
+[THEN]
+
+70 CONSTANT number-of-questions
+
+number-of-questions array th-question
+
+: set-question
+	1- th-question HERE SWAP !
+	get-line s,
+	parse-word 2drop    get-line s,
+	parse-word 2drop    get-line s,
+;
+
+: Q.	parse-word EVALUATE set-question ;
+
+Q. 1 At a party do you:
+  a. interact with many, including strangers
+  b. interact with a few, known to you
+	
+Q. 2 Are you more:
+  a. realistic than speculative
+  b. speculative than realistic
+	
+Q. 3 Is it worse to:
+  a. have your "head in a the clouds"
+  b. be "in a rut"
+	
+Q. 4 Are you more impressed by:
+  a. principles
+  b. emotions
+	
+Q. 5 Are you more drawn to:
+  a. convincing
+  b. touching
+	
+Q. 6 Do you prefer to work:
+  a. to deadlines
+  b. just "whenever"
+	
+Q. 7 Do you tend to choose:
+  a. rather carefully
+  b. somewhat impulsively
+	
+Q. 8 At parties do you:
+  a. stay late, with increasing energy
+  b. leave early, with decreased energy
+	
+Q. 9 Are you more attracted to:
+  a. sensible people
+  b. imaginative people
+	
+Q. 10 Are you more interested in:
+  a. what is actual
+  b. what is possible
+	
+Q. 11 In judging others are you more swayed by:
+  a. laws than circumstances
+  b. circumstances than laws
+	
+Q. 12 In approaching others is your inclination to be somewhat:
+  a. objective
+  b. personal
+	
+Q. 13 Are you more:
+  a. punctual
+  b. leisurely
+	
+Q. 14 Does it bother you more having things:
+  a. incomplete
+  b. completed
+	
+Q. 15 In your social groups do you:
+  a. keep abreast of other's happenings
+  b. get behind on the news
+	
+Q. 16 In doing ordinary things are you more likely to:
+  a. do it the usual way
+  b. do it your own way
+	
+Q. 17 Writers should:
+  a. "say what they mean and mean what they say"
+  b. express things more by the use of analogy
+	
+Q. 18 Which appeals to you more?
+  a. consistency of thought
+  b. harmonious human relationships
+	
+Q. 19 Are you more comfortable with:
+  a. logical judgments
+  b. value judgements
+	
+Q. 20 Do you want things:
+  a. settled and decided
+  b. unsettled and undecided
+	
+Q. 21 Would you say you are more:
+  a. serious and determined
+  b. easy-going
+	
+Q. 22 In phoning do you:
+  a. rarely question that it will all be said
+  b. rehearse what you'll say
+	
+Q. 23 Facts:
+  a. speak for themselves
+  b. illustrate principles
+	
+Q. 24 Are visionaries:
+  a. somewhat annoying
+  b. rather fascinating
+	
+Q. 25 Are you more often:
+  a. a cool-headed person
+  b. a warm-hearted person
+	
+Q. 26 Is it worse to be:
+  a. unjust
+  b. merciless
+	
+Q. 27 Should one usually let events occur:
+  a. by careful selection and choice
+  b. randomly and by chance
+	
+Q. 28 Do you feel better about:
+  a. having purchased
+  b. having the option to buy
+	
+Q. 29 In company do you:
+  a. initiate conversation
+  b. wait to be approached
+	
+Q. 30 Common sense is:
+  a. rarely questionable
+  b. frequently questionable
+	
+Q. 31 Children often do not:
+  a. make themselves useful enough
+  b. exercise their fantasy enough
+	
+Q. 32 In making decisions do you feel more comfortable with:
+  a. standards
+  b. feelings
+	
+Q. 33 Are you more:
+  a. firm than gentle
+  b. gentle than firm
+	
+Q. 34 Which is more admirable?
+  a. the ability to organize and be methodical
+  b. the ability to adapt and make do
+	
+Q. 35 Do you put more value on the:
+  a. definite
+  b. open-ended
+	
+Q. 36 Does new and non-routine interaction with others:
+  a. stimulate and energize you
+  b. tax your reserves
+	
+Q. 37 Are you more frequently:
+  a. a practical sort of person
+  b. a fanciful sort of person
+	
+Q. 38 Are you more likely to:
+  a. see how others are useful
+  b. see how others see
+	
+Q. 39 Which is more satisfying?
+  a. to discuss an issue thoroughly
+  b. to arrive at agreement on an issue
+	
+Q. 40 Which rules you more?
+  a. your head
+  b. your heart
+	
+Q. 41 Are you more comfortable with work that is:
+  a. contracted
+  b. done on a casual basis
+	
+Q. 42 Do you tend to look for:
+  a. the orderly
+  b. whatever turns up
+	
+Q. 43 Do you prefer:
+  a. many friends with brief contact
+  b. a few friends with more lengthy contact
+	
+Q. 44 Do you go more by:
+  a. facts
+  b. principles
+	
+Q. 45 Are you more interested in:
+  a. production and distribution
+  b. design and research
+	
+Q. 46 Which is more of a compliment?
+  a. "There is a very logical person."
+  b. "There is a very sentimental person."
+	
+Q. 47 Do you value in yourself that you are more:
+  a. unwavering
+  b. devoted
+	
+Q. 48 Do you more often prefer the:
+  a. final and unalterable statement
+  b. tentative and preliminary statement
+	
+Q. 49 Are you more comfortable:
+  a. after a decision
+  b. before a decision
+	
+Q. 50 Do you:
+  a. speak easily and at length with strangers
+  b. find little to say to strangers
+	
+Q. 51 Are you more likely to trust your:
+  a. experience
+  b. hunch
+	
+Q. 52 Do you feel:
+  a. more practical than ingenious
+  b. more ingenious than practical
+	
+Q. 53 Which person is to be more complimented: one of
+  a. clear reason
+  b. strong feeling
+	
+Q. 54 Are you more inclined to be:
+  a. fair-minded
+  b. sympathetic
+	
+Q. 55 Is it preferable mostly to:
+  a. make sure things are arranged
+  b. just let things happen
+	
+Q. 56 In relationships should most things be:
+  a. renegotiable
+  b. random and circumstantial
+	
+Q. 57 When the phone rings do you:
+  a. hasten to get to it first
+  b. hope someone else will answer
+	
+Q. 58 Do you prize more in yourself:
+  a. a strong sense of reality
+  b. a vivid imagination
+	
+Q. 59 Are you drawn more to:
+  a. fundamentals
+  b. overtones
+	
+Q. 60 Which seems the greater error?
+  a. to be too passionate
+  b. to be too objective
+	
+Q. 61 Do you see yourself basically:
+  a. hard-hearted
+  b. soft-hearted
+	
+Q. 62 Which situation appeals to you more?
+  a. the structured and scheduled
+  b. the unstructured and unscheduled
+	
+Q. 63 Are you a person that is more:
+  a. routinized than whimsical
+  b. whimsical than routinized
+	
+Q. 64 Are you more inclined to be:
+  a. easy to approach
+  b. somewhat reserved
+	
+Q. 65 In writings do you prefer:
+  a. the more literal
+  b. the more figurative
+	
+Q. 66 Is it harder for you to:
+  a. identify with others
+  b. utilize others
+	
+Q. 67 Which do you wish more for yourself?
+  a. clarity of reason
+  b. strength of compassion
+	
+Q. 68 Which is the greater fault?
+  a. being indescriminate
+  b. being critical
+	
+Q. 69 Do you prefer the:
+  a. planned event
+  b. unplanned event
+
+Q. 70 Do you tend to be more:
+  a. deliberate than spontaneous
+  b. spontaneous than deliberate
+
+number-of-questions array th-quiz
+
+: exchange	DUP @ >R    OVER @ SWAP !   R> SWAP ! ;
+
+: shuffle-questions
+	number-of-questions 0 DO
+		I 1+ I th-quiz !
+	LOOP
+	number-of-questions 0 DO
+		number-of-questions get-random th-quiz
+			I th-quiz
+			exchange
+	LOOP
+;
+
+VARIABLE toss
+
+: .question			( question-addr -- )
+	DUP COUNT TYPE CR
+	COUNT + DUP >R COUNT + R>	( addr addr)
+	2 get-random DUP toss ! IF SWAP THEN
+	."   a. " COUNT TYPE CR
+	."   b. " COUNT TYPE CR
+;
+
+VARIABLE question-number
+
+: ask-question			( -- )
+	question-number @		( n)
+	1- th-quiz @
+	1- th-question @
+	.question			( )
+;
+
+4 array th-tally
+
+: reset-tallies
+	4 0 DO    0 I th-tally !    LOOP
+;
+
+: score-question		( 1|-1 -- )
+	toss @ IF NEGATE THEN
+	question-number @		( n)
+	1- th-quiz @
+	1- 7 MOD 1+ 2/ th-tally +!	( )
+;
+
+: E-or-I			( -- char )
+	0 th-tally @ ?DUP 0= IF
+		[CHAR] X
+	ELSE	0> IF
+		." Extraverted "
+		[CHAR] E
+	ELSE
+		." Introverted "
+		[CHAR] I
+	THEN THEN
+;
+
+: S-or-N			( -- char )
+	1 th-tally @ ?DUP 0= IF
+		[CHAR] X
+	ELSE	0> IF
+		." Sensative "
+		[CHAR] S
+	ELSE	
+		." iNtuitive "
+		[CHAR] N
+	THEN THEN
+;
+
+: T-or-F			( -- char )
+	2 th-tally @ ?DUP 0= IF
+		[CHAR] X
+	ELSE	0> IF
+		." Thinking "
+		[CHAR] T
+	ELSE
+		." Feeling "
+		[CHAR] F
+	THEN THEN
+;
+
+: J-or-P			( -- char )
+	3 th-tally @ ?DUP 0= IF
+		[CHAR] X
+	ELSE	0> IF
+		." Judging "
+		[CHAR] J
+	ELSE	
+		." Perceiving "
+		[CHAR] P
+	THEN THEN
+;
+
+: analyze-answers
+	\ 4 0 DO   I th-tally ?   LOOP   CR
+	E-or-I PAD C!
+	S-or-N PAD CHAR+ C!
+	T-or-F PAD 2 CHARS + C!
+	J-or-P PAD 3 CHARS + C!
+	CR   PAD 4 TYPE   CR
+;
+
+: next-question				( 1|-1 -- )
+	score-question				( )
+	question-number @ number-of-questions < IF
+		1 question-number +!
+		ask-question
+	ELSE
+		analyze-answers
+		CR
+	THEN
+;
+
+: test
+	reset-tallies
+	shuffle-questions
+	1 question-number !
+	ask-question
+;
+
+: a	1 next-question ;
+: b	-1 next-question ;
+
+( `j' and `k' can be used to answer as well as `a' and `b'. )
+
+: j	a ;
+: k	b ;
+
+( Waffle. )
+
+: x	0 next-question ;
+
+CR CR
+
+test
+
+(
+
+: ENFJ 	." The archetype of ENFJ  5%   is Pedagogue." ;
+: INFJ	." The archetype of INFJ  1%  is Author." ;
+: ENFP	." The archetype of ENFP  5%  is Journalist." ;
+: INFP	." The archetype of INFP  1%  is Questor." ;
+
+: ENTJ	." The archetype of ENTJ  5%  is Fieldmarshal." ;
+: INTJ	." The archetype of INTJ  1%  is Scientist." ;
+: ENTP	." The archetype of ENTP  5%  is Inventor." ;
+: INTP 	." The archetype of INTP  1%  is Architect.". ;
+
+: ESTJ	." The archetype of ESTJ  13%  is Administrator." ;
+: ISTJ	." The archetype of ISTJ  6%  is Trustee." ;
+: ESFJ	." The archetype of ESFJ  13%  is Seller." ;
+: ISFJ	." The archetype of ISFJ  6%  is Conservative." ;
+
+: ESTP	." The archetype of ESTP  13%  is Promoter." ;
+: ESFP	." The archetype of ESFP  13%  is Entertainer." ;
+: ISTP	." The archetype of ISTP  6%  is Artisan." ;
+: ISFP	." The archetype of ISFP  6%  is Artist." ;
+
+)

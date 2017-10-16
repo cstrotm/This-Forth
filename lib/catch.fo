@@ -1,0 +1,42 @@
+( The Sample CATCH/THROW from the Standard Annex )
+
+| : set-depth                            ( n -- )
+	>R                                      ( )
+		BEGIN    DEPTH R@ < WHILE    0    REPEAT
+		BEGIN    DEPTH R@ > WHILE    DROP    REPEAT
+	R> DROP
+;
+
+| : set-nesting                          ( n -- )
+	R>                                      ( n .)
+		BEGIN    OVER nesting < WHILE    R> DROP    REPEAT
+	>R DROP                                 ( )
+;
+
+| VARIABLE handler   0 handler !  \ last exception handler
+
+: CATCH  ( xt -- exception# | 0 ) \ return addr on stack
+	DEPTH >R           ( xt ) \ save data stack pointer
+	handler @ >R       ( xt ) \ and previous handler
+	nesting handler !  ( xt ) \ set current handler
+	EXECUTE            ( )    \ execute returns if no THROW
+	R> handler !       ( )    \ restore previous handler
+	R> DROP            ( )    \ discard saved stack ptr
+	0                  ( 0 )  \ normal completion
+;
+
+
+: THROW  ( ??? exception# -- ??? exception# )
+	?DUP 0= ?? EXIT	          ( exc# ) \ 0 THROW is no-op
+	handler @ 0= ?? ABORT
+	handler @ set-nesting     ( exc# ) \ restore prev return stack
+	R> handler !              ( exc# ) \ restore prev handler
+	R> SWAP >R            ( saved-sp ) \ exc# on return stack
+	set-depth DROP R>         ( exc# ) \ restore stack
+	\  Return to the caller of CATCH because return
+	\  stack is restored to the state that existed
+	\  when CATCH began execution
+;
+
+||      ( End of CATCH/THROW Module )
+

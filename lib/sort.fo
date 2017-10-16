@@ -1,0 +1,53 @@
+have QSORT 0= [if]    --> qsort    [then]
+
+: INORDER-STREAM                ( file-pos file-pos -- -1|0|1 )
+        >R                              ( file-pos)
+                0 tuck sought           ( )
+                EOL parse               ( string .)
+        R>                              ( string . file-pos)
+        0 tuck sought                   ( string .)
+        EOL parse                       ( string . string .)
+        compare negate                  ( -1|0|1)
+;
+
+variable        #SORTFILE
+variable        #SORTLINES
+
+: SORTLOAD                      ( fileid -- )
+        #sortfile !                     ( )     
+        0 #sortlines !
+        here unused +                   ( a-addr)
+        #sortfile @                     ( a-addr fileid)
+        filter                          ( a-addr)
+                1 cells -
+                0 told over !
+                EOL parse 2drop
+                1 #sortlines +!
+        unfilter                        drop
+;
+
+: SORTGRIND                     ( -- )
+        #sortfile @ stream
+                here unused + #sortlines @ cells -
+                        #sortlines @ ['] INORDER-STREAM qsort
+        unstream
+        #sortfile @ rewind
+;
+
+: SORTDUMP                      ( -- )
+        #sortfile @ stream
+                here unused +           	( a-addr)
+                #sortlines @ 0 ?do
+                        1 cells -
+                        dup @ 0 swap over sought
+                        EOL parse type cr
+                loop                            drop
+        unstream
+        #sortfile @ rewind
+;
+
+: SORT                          ( fileid -- )
+        SORTLOAD                        ( )
+        SORTGRIND
+        SORTDUMP
+;
