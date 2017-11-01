@@ -15,7 +15,7 @@ O = o
 
 #M4 = m4
 #M4 = pdm4
-M4 = /usr/5bin/m4
+M4 = /usr/bin/m4
 
 #
 # Unix
@@ -26,7 +26,7 @@ CC = gcc
 # CFLAGS	Flags needed by your compiler.
 
 #CFLAGS =
-CFLAGS = -D__GNU__ -D$(MACHINE) -I/usr/include/bsd
+CFLAGS = -D__GNU__ -D$(MACHINE) -I/usr/include/bsd -ansi
 #
 FO = -o fo
 AFORTH = -o aforth
@@ -138,8 +138,8 @@ fo:	fo.c fo.h kernel.c $(PLATFORM) $(CUSTOM)
 
 # Make A Forth Step 4: make rth.m4
 
-rth.m4:	fo rth save-4th $(EXTRA) $(STARTUP)
-	fo rth path $(ELECTIVES) $(EXTRA) $(STARTUP) save-4th
+rth.m4:	./fo rth save-4th $(EXTRA) $(STARTUP)
+	./fo rth path $(ELECTIVES) $(EXTRA) $(STARTUP) save-4th
 	rm -f hi.tmp
 
 # Make A Forth Step 5: make aforth.c.
@@ -170,8 +170,8 @@ auto:	auto.c fo.h kernel.c $(PLATFORM) $(CUSTOM)
 #
 # Test A Forth.
 
-test:	aforth
-	aforth tests
+test:	./aforth
+	./aforth tests
 
 # Install executable.
 
