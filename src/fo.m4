@@ -1596,7 +1596,7 @@ divert(MAIN)
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-FILE * usrin = stdin, * usrout = stdout;
+FILE * usrin = NULL, * usrout = NULL;
 int parg; int pargc; char ** pargv;
 
 char CS[CHARACTERROOM];
@@ -1618,7 +1618,7 @@ unsigned localname = LOCALNAME;
 int anonymous = FALSE;
 
 FILE * file[maxfiles];
-FILE * device = stdin;
+FILE * device = NULL;
 char* cpps[maxfiles]; /* Character Pointer Pointer Stack */
 char* cpp = CS; /* Character Pointer Pointer */
 char* cp = CS; /* Character Pointer */
@@ -1668,6 +1668,9 @@ int main(int argc, char ** argv) {
 	ifdef(`FLOATING',`double f;')
 ')
 	/* Skeleton for the Kernel */
+	usrin = stdin;
+	device = stdin;
+	usrout = stdout;
 	pargc = argc, pargv = argv;
 	setbuf(stdin,NULL);
 
