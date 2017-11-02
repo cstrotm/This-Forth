@@ -1,0 +1,10 @@
+*.fo linguist-language=Forth
+/src/coretest linguist-language=Forth
+/src/path linguist-language=Forth
+/src/rth linguist-language=Forth
+/src/save-forth linguist-language=Forth
+/src/ssp linguist-language=Forth
+/src/stock linguist-language=Forth
+/src/tester linguist-language=Forth
+/src/tests linguist-language=Forth
+/src/words linguist-language=Forth
